@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <integer name="card_presenter_width">210</integer>
+    <integer name="card_presenter_height">210</integer>
+    <integer name="detail_thumbnail_square_size">270</integer>
+
+</resources>

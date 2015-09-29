@@ -1,0 +1,86 @@
+package com.apress.mediaplayer;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v17.leanback.app.SearchFragment;
+import android.support.v17.leanback.widget.ArrayObjectAdapter;
+import android.support.v17.leanback.widget.HeaderItem;
+import android.support.v17.leanback.widget.ListRow;
+import android.support.v17.leanback.widget.ListRowPresenter;
+import android.support.v17.leanback.widget.ObjectAdapter;
+import android.support.v17.leanback.widget.SpeechRecognitionCallback;
+import android.util.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by Paul on 9/28/15.
+ */
+public class MediaSearchFragment extends SearchFragment implements SpeechRecognitionCallback, SearchFragment.SearchResultProvider {
+
+    private ArrayObjectAdapter mRowsAdapter;
+    private List<Video> mVideos;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        loadData();
+        mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+        setSearchResultProvider(this);
+        setSpeechRecognitionCallback( this );
+    }
+
+    private void loadData() {
+        String json = Utils.loadJSONFromResource( getActivity(), R.raw.videos );
+        Type collection = new TypeToken<ArrayList<Video>>(){}.getType();
+
+        Gson gson = new Gson();
+        mVideos = gson.fromJson( json, collection );
+    }
+
+    private void loadQuery( String query ) {
+        ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(new CardPresenter());
+        listRowAdapter.add( mVideos.get( 0 ) );
+        listRowAdapter.add( mVideos.get( 1 ) );
+        listRowAdapter.add( mVideos.get( 2 ) );
+
+        HeaderItem header = new HeaderItem( "Results" );
+        mRowsAdapter.add(new ListRow(header, listRowAdapter));
+
+
+    }
+
+    @Override
+    public void recognizeSpeech() {
+        Log.e( "TV", "recognizeSpeech" );
+    }
+
+    @Override
+    public ObjectAdapter getResultsAdapter() {
+        return mRowsAdapter;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newQuery) {
+        Log.e( "TV", "onQueryTextChange: " + newQuery );
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        Log.e( "TV", "onQueryTextSubmit: " + query );
+        loadQuery( query );
+        return false;
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+}

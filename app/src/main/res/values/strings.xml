@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MediaPlayer</string>
+
+    <string name="preference_settings">Settings</string>
+</resources>
