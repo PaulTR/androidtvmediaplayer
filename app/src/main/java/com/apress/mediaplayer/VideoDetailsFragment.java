@@ -1,5 +1,6 @@
 package com.apress.mediaplayer;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -15,6 +16,10 @@ import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.ObjectAdapter;
 import android.support.v17.leanback.widget.OnActionClickedListener;
+import android.support.v17.leanback.widget.OnItemViewClickedListener;
+import android.support.v17.leanback.widget.Presenter;
+import android.support.v17.leanback.widget.Row;
+import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.SparseArrayObjectAdapter;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -32,7 +37,7 @@ import java.util.List;
 /**
  * Created by Paul on 9/16/15.
  */
-public class VideoDetailsFragment extends DetailsFragment {
+public class VideoDetailsFragment extends DetailsFragment implements OnItemViewClickedListener {
 
     public static final String EXTRA_VIDEO = "extra_video";
     public static final long ACTION_WATCH = 1;
@@ -42,18 +47,15 @@ public class VideoDetailsFragment extends DetailsFragment {
     private Target target = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            Log.e( "TV", "bitmap loaded" );
             row.setImageBitmap(getActivity(), bitmap);
         }
 
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
-            Log.e( "TV", "bitmap failed" );
         }
 
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
-            Log.e( "TV", "bitmap prepare load" );
         }
     };
 
@@ -93,7 +95,10 @@ public class VideoDetailsFragment extends DetailsFragment {
             @Override
             public void onActionClicked(Action action) {
                 if (action.getId() == ACTION_WATCH) {
-                    Toast.makeText(getActivity(), "Watch this thing", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getActivity(), "Watch this thing", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent( getActivity(), PlayerActivity.class );
+                    intent.putExtra( VideoDetailsFragment.EXTRA_VIDEO, mVideo );
+                    startActivity( intent );
                 }
             }
         });
@@ -110,6 +115,8 @@ public class VideoDetailsFragment extends DetailsFragment {
 
         Picasso.with(getActivity()).load(mVideo.getPoster()).resize(274, 274).into(target);
 
+
+        setOnItemViewClickedListener( this );
     }
 
     private void loadRelatedMedia( ArrayObjectAdapter adapter ) {
@@ -117,23 +124,32 @@ public class VideoDetailsFragment extends DetailsFragment {
         String json = Utils.loadJSONFromResource( getActivity(), R.raw.videos );
         Gson gson = new Gson();
         Type collection = new TypeToken<ArrayList<Video>>(){}.getType();
-        List<Video> movies = gson.fromJson( json, collection );
-        List<Video> related = new ArrayList<Video>();
-        for( Video movie : movies ) {
-            if( movie.getCategory().equals( mVideo.getCategory() ) ) {
-                related.add( movie );
-            }
-        }
-
-        if( related.isEmpty() )
+        List<Video> videos = gson.fromJson( json, collection );
+        if( videos == null )
             return;
 
         ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter( new CardPresenter() );
-        for( Video movie : related ) {
-            listRowAdapter.add( movie );
+
+        for( Video video : videos ) {
+            if( video.getCategory().equals( mVideo.getCategory() ) && !video.getTitle().equals( mVideo.getTitle() ) ) {
+                listRowAdapter.add( video );
+            }
         }
+
+        if( listRowAdapter.size() == 0 )
+            return;
 
         HeaderItem header = new HeaderItem( 0, "Related" );
         adapter.add(new ListRow(header, listRowAdapter));
+    }
+
+    @Override
+    public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
+        if( item instanceof Video ) {
+            Video video = (Video) item;
+            Intent intent = new Intent( getActivity(), VideoDetailActivity.class );
+            intent.putExtra( VideoDetailsFragment.EXTRA_VIDEO, video );
+            startActivity( intent );
+        }
     }
 }

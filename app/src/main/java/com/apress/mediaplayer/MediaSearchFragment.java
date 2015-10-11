@@ -8,6 +8,10 @@ import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.ObjectAdapter;
+import android.support.v17.leanback.widget.OnItemViewClickedListener;
+import android.support.v17.leanback.widget.Presenter;
+import android.support.v17.leanback.widget.Row;
+import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.SpeechRecognitionCallback;
 import android.util.Log;
 
@@ -21,7 +25,7 @@ import java.util.List;
 /**
  * Created by Paul on 9/28/15.
  */
-public class MediaSearchFragment extends SearchFragment implements SpeechRecognitionCallback, SearchFragment.SearchResultProvider {
+public class MediaSearchFragment extends SearchFragment implements SpeechRecognitionCallback, SearchFragment.SearchResultProvider, OnItemViewClickedListener {
 
     private ArrayObjectAdapter mRowsAdapter;
     private List<Video> mVideos;
@@ -33,6 +37,7 @@ public class MediaSearchFragment extends SearchFragment implements SpeechRecogni
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         setSearchResultProvider(this);
         setSpeechRecognitionCallback( this );
+        setOnItemViewClickedListener( this );
     }
 
     private void loadData() {
@@ -44,10 +49,18 @@ public class MediaSearchFragment extends SearchFragment implements SpeechRecogni
     }
 
     private void loadQuery( String query ) {
+        if( query == null || query.length() == 0 )
+            return;
+
         ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(new CardPresenter());
-        listRowAdapter.add( mVideos.get( 0 ) );
-        listRowAdapter.add( mVideos.get( 1 ) );
-        listRowAdapter.add( mVideos.get( 2 ) );
+        for( Video video : mVideos ) {
+            if( video.getTitle() != null && video.getTitle().toLowerCase().contains( query.toLowerCase() ) ) {
+                listRowAdapter.add( video );
+            }
+        }
+
+        if(listRowAdapter.size() == 0 )
+            return;
 
         HeaderItem header = new HeaderItem( "Results" );
         mRowsAdapter.add(new ListRow(header, listRowAdapter));
@@ -68,6 +81,10 @@ public class MediaSearchFragment extends SearchFragment implements SpeechRecogni
     @Override
     public boolean onQueryTextChange(String newQuery) {
         Log.e( "TV", "onQueryTextChange: " + newQuery );
+        if( mRowsAdapter != null )
+            mRowsAdapter.clear();
+
+        loadQuery( newQuery );
         return false;
     }
 
@@ -78,9 +95,13 @@ public class MediaSearchFragment extends SearchFragment implements SpeechRecogni
         return false;
     }
 
-
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
+        if( item instanceof Video ) {
+            Video video = (Video) item;
+            Intent intent = new Intent( getActivity(), VideoDetailActivity.class );
+            intent.putExtra( VideoDetailsFragment.EXTRA_VIDEO, video );
+            startActivity( intent );
+        }
     }
 }

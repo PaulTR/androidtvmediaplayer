@@ -28,6 +28,7 @@
         <activity android:name=".VideoDetailActivity" />
         <activity android:name=".SettingsActivity" />
         <activity android:name=".MediaSearchActivity" />
+        <activity android:name=".PlayerActivity" />
 
     </application>
 
