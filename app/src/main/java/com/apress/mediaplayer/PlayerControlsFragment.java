@@ -1,6 +1,5 @@
 package com.apress.mediaplayer;
 
-import android.media.MediaMetadataRetriever;
 import android.os.Bundle;
 import android.support.v17.leanback.app.PlaybackOverlayFragment;
 import android.support.v17.leanback.widget.AbstractDetailsDescriptionPresenter;
@@ -55,6 +54,26 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
         mControlsCallback = (PlayerControlsListener) getActivity();
         mSelectedVideo = (Video) getActivity().getIntent().getSerializableExtra(VideoDetailsFragment.EXTRA_VIDEO);
 
+        setupPlaybackControlsRow();
+        setupPresenter();
+        initActions();
+        setupPrimaryActionsRow();
+        setupSecondaryActionsRow();
+
+        setAdapter(mRowsAdapter);
+
+    }
+
+    private void setupPlaybackControlsRow() {
+        mPlaybackControlsRow = new PlaybackControlsRow( mSelectedVideo );
+        ControlButtonPresenterSelector presenterSelector = new ControlButtonPresenterSelector();
+        mPrimaryActionsAdapter = new ArrayObjectAdapter(presenterSelector);
+        mSecondaryActionsAdapter = new ArrayObjectAdapter(presenterSelector);
+        mPlaybackControlsRow.setPrimaryActionsAdapter(mPrimaryActionsAdapter);
+        mPlaybackControlsRow.setSecondaryActionsAdapter(mSecondaryActionsAdapter);
+    }
+
+    private void setupPresenter() {
         ClassPresenterSelector ps = new ClassPresenterSelector();
         //Either include a presenter to show content on the overlay, or leave it blank to show just the controls
         PlaybackControlsRowPresenter playbackControlsRowPresenter = new PlaybackControlsRowPresenter( new DescriptionPresenter() );
@@ -86,19 +105,10 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
         ps.addClassPresenter(PlaybackControlsRow.class, playbackControlsRowPresenter);
         ps.addClassPresenter(ListRow.class, new ListRowPresenter());
         mRowsAdapter = new ArrayObjectAdapter(ps);
-
-        //addplaybackcontrolsrow
-        mPlaybackControlsRow = new PlaybackControlsRow( mSelectedVideo );
         mRowsAdapter.add(mPlaybackControlsRow);
+    }
 
-        //addplaybackcontrolsrow
-        ControlButtonPresenterSelector presenterSelector = new ControlButtonPresenterSelector();
-        mPrimaryActionsAdapter = new ArrayObjectAdapter(presenterSelector);
-        mSecondaryActionsAdapter = new ArrayObjectAdapter(presenterSelector);
-        mPlaybackControlsRow.setPrimaryActionsAdapter(mPrimaryActionsAdapter);
-        mPlaybackControlsRow.setSecondaryActionsAdapter(mSecondaryActionsAdapter);
-
-        //create actions
+    private void initActions() {
         mPlayPauseAction = new PlaybackControlsRow.PlayPauseAction(getActivity());
         mRepeatAction = new PlaybackControlsRow.RepeatAction(getActivity());
         mShuffleAction = new PlaybackControlsRow.ShuffleAction(getActivity());
@@ -106,20 +116,21 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
         mSkipPreviousAction = new PlaybackControlsRow.SkipPreviousAction(getActivity());
         mFastForwardAction = new PlaybackControlsRow.FastForwardAction(getActivity());
         mRewindAction = new PlaybackControlsRow.RewindAction(getActivity());
+    }
 
+    private void setupPrimaryActionsRow() {
         mPrimaryActionsAdapter.add(mSkipPreviousAction);
         mPrimaryActionsAdapter.add(mRewindAction);
         mPrimaryActionsAdapter.add(mPlayPauseAction);
         mPrimaryActionsAdapter.add(mFastForwardAction);
         mPrimaryActionsAdapter.add(mSkipNextAction);
+    }
 
+    private void setupSecondaryActionsRow() {
         mSecondaryActionsAdapter.add(mRepeatAction);
         mSecondaryActionsAdapter.add(mShuffleAction);
         mSecondaryActionsAdapter.add(new PlaybackControlsRow.HighQualityAction(getActivity()));
         mSecondaryActionsAdapter.add(new PlaybackControlsRow.ClosedCaptioningAction(getActivity()));
-
-        setAdapter(mRowsAdapter);
-
     }
 
     private void notifyChanged(Action action) {
