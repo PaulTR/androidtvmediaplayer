@@ -15,10 +15,8 @@ public class PreferenceCardPresenter extends Presenter {
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         TextView view = new TextView(parent.getContext());
         view.setLayoutParams(new ViewGroup.LayoutParams(
-                parent.getResources().getInteger(R.integer.card_presenter_width),
-                parent.getResources().getInteger(R.integer.card_presenter_height)));
+                210, 210));
         view.setFocusable(true);
-        view.setFocusableInTouchMode(true);
         view.setBackgroundColor(ContextCompat.getColor( parent.getContext(), R.color.preference_card_background));
         view.setTextColor(Color.WHITE);
         view.setGravity(Gravity.CENTER);

@@ -27,7 +27,7 @@ public class CardPresenter extends Presenter {
         }
 
         public void updateCardViewImage( Context context, String link ) {
-            Picasso.with(context).load(link).resize(context.getResources().getInteger(R.integer.card_presenter_width), context.getResources().getInteger(R.integer.card_presenter_height)).centerCrop().into(mCardView.getMainImageView());
+            Picasso.with(context).load(link).resize(210, 210).centerCrop().into(mCardView.getMainImageView());
         }
     }
 
@@ -35,7 +35,6 @@ public class CardPresenter extends Presenter {
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         ImageCardView cardView = new ImageCardView( parent.getContext() );
         cardView.setFocusable( true );
-        cardView.setFocusableInTouchMode( true );
         return new ViewHolder(cardView);
     }
 
@@ -46,8 +45,8 @@ public class CardPresenter extends Presenter {
         if ( !TextUtils.isEmpty(video.getPoster()) ) {
             ((ViewHolder) viewHolder).mCardView.setTitleText(video.getTitle());
             ((ViewHolder) viewHolder).mCardView.setMainImageDimensions(
-                    ( (ViewHolder) viewHolder ).mCardView.getContext().getResources().getInteger( R.integer.card_presenter_width ),
-                    ( (ViewHolder) viewHolder ).mCardView.getContext().getResources().getInteger( R.integer.card_presenter_height ) );
+                    210,
+                    210 );
             ( (ViewHolder) viewHolder ).updateCardViewImage( ( (ViewHolder) viewHolder ).getCardView().getContext(), video.getPoster() );
         }
     }

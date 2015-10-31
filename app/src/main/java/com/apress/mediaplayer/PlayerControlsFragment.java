@@ -12,13 +12,12 @@ import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnActionClickedListener;
 import android.support.v17.leanback.widget.PlaybackControlsRow;
 import android.support.v17.leanback.widget.PlaybackControlsRowPresenter;
-import android.util.Log;
 import android.widget.Toast;
 
 /**
  * Created by Paul on 10/10/15.
  */
-public class PlayerControlsFragment extends PlaybackOverlayFragment {
+public class PlayerControlsFragment extends PlaybackOverlayFragment implements OnActionClickedListener {
 
     public interface PlayerControlsListener {
         void play();
@@ -26,8 +25,7 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
     }
 
     private PlayerControlsListener mControlsCallback;
-
-    private Video mSelectedVideo;
+    private Video mVideo;
 
     private ArrayObjectAdapter mRowsAdapter;
     private ArrayObjectAdapter mPrimaryActionsAdapter;
@@ -36,13 +34,14 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
     private PlaybackControlsRow mPlaybackControlsRow;
 
     private PlaybackControlsRow.PlayPauseAction mPlayPauseAction;
-
     private PlaybackControlsRow.RepeatAction mRepeatAction;
     private PlaybackControlsRow.ShuffleAction mShuffleAction;
     private PlaybackControlsRow.FastForwardAction mFastForwardAction;
     private PlaybackControlsRow.RewindAction mRewindAction;
     private PlaybackControlsRow.SkipNextAction mSkipNextAction;
     private PlaybackControlsRow.SkipPreviousAction mSkipPreviousAction;
+    private PlaybackControlsRow.HighQualityAction mHighQualityAction;
+    private PlaybackControlsRow.ClosedCaptioningAction mClosedCaptionAction;
 
 
     @Override
@@ -52,7 +51,7 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
         setFadingEnabled(false);
 
         mControlsCallback = (PlayerControlsListener) getActivity();
-        mSelectedVideo = (Video) getActivity().getIntent().getSerializableExtra(VideoDetailsFragment.EXTRA_VIDEO);
+        mVideo = (Video) getActivity().getIntent().getSerializableExtra(VideoDetailsFragment.EXTRA_VIDEO);
 
         setupPlaybackControlsRow();
         setupPresenter();
@@ -65,7 +64,7 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
     }
 
     private void setupPlaybackControlsRow() {
-        mPlaybackControlsRow = new PlaybackControlsRow( mSelectedVideo );
+        mPlaybackControlsRow = new PlaybackControlsRow( mVideo );
         ControlButtonPresenterSelector presenterSelector = new ControlButtonPresenterSelector();
         mPrimaryActionsAdapter = new ArrayObjectAdapter(presenterSelector);
         mSecondaryActionsAdapter = new ArrayObjectAdapter(presenterSelector);
@@ -75,34 +74,13 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
 
     private void setupPresenter() {
         ClassPresenterSelector ps = new ClassPresenterSelector();
-        //Either include a presenter to show content on the overlay, or leave it blank to show just the controls
-        PlaybackControlsRowPresenter playbackControlsRowPresenter = new PlaybackControlsRowPresenter( new DescriptionPresenter() );
-
-        playbackControlsRowPresenter.setOnActionClickedListener(new OnActionClickedListener() {
-            public void onActionClicked(Action action) {
-                Log.e("Video", "Action clicked: " + action.getLabel1());
-                if(action.getId() == mPlayPauseAction.getId()) {
-                    if (mPlayPauseAction.getIndex() == PlaybackControlsRow.PlayPauseAction.PLAY) {
-                        setFadingEnabled(true);
-                        mControlsCallback.play();
-                        mRowsAdapter.notifyArrayItemRangeChanged(0, 1);
-                    } else {
-                        setFadingEnabled( false );
-                        mControlsCallback.pause();
-                    }
-                } else if( action.getId() == mRewindAction.getId() ) {
-                    Toast.makeText( getActivity(), "Rewind", Toast.LENGTH_SHORT ).show();
-                }
-                if (action instanceof PlaybackControlsRow.MultiAction) {
-                    ((PlaybackControlsRow.MultiAction) action).nextIndex();
-                    notifyChanged(action);
-                }
-            }
-        });
-
+        PlaybackControlsRowPresenter playbackControlsRowPresenter =
+                new PlaybackControlsRowPresenter( new DescriptionPresenter() );
+        playbackControlsRowPresenter.setOnActionClickedListener(this);
         playbackControlsRowPresenter.setSecondaryActionsHidden(false);
 
-        ps.addClassPresenter(PlaybackControlsRow.class, playbackControlsRowPresenter);
+        ps.addClassPresenter(PlaybackControlsRow.class,
+                playbackControlsRowPresenter);
         ps.addClassPresenter(ListRow.class, new ListRowPresenter());
         mRowsAdapter = new ArrayObjectAdapter(ps);
         mRowsAdapter.add(mPlaybackControlsRow);
@@ -116,6 +94,8 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
         mSkipPreviousAction = new PlaybackControlsRow.SkipPreviousAction(getActivity());
         mFastForwardAction = new PlaybackControlsRow.FastForwardAction(getActivity());
         mRewindAction = new PlaybackControlsRow.RewindAction(getActivity());
+        mHighQualityAction = new PlaybackControlsRow.HighQualityAction(getActivity());
+        mClosedCaptionAction = new PlaybackControlsRow.ClosedCaptioningAction(getActivity());
     }
 
     private void setupPrimaryActionsRow() {
@@ -129,20 +109,26 @@ public class PlayerControlsFragment extends PlaybackOverlayFragment {
     private void setupSecondaryActionsRow() {
         mSecondaryActionsAdapter.add(mRepeatAction);
         mSecondaryActionsAdapter.add(mShuffleAction);
-        mSecondaryActionsAdapter.add(new PlaybackControlsRow.HighQualityAction(getActivity()));
-        mSecondaryActionsAdapter.add(new PlaybackControlsRow.ClosedCaptioningAction(getActivity()));
+        mSecondaryActionsAdapter.add(mHighQualityAction);
+        mSecondaryActionsAdapter.add(mClosedCaptionAction);
     }
 
-    private void notifyChanged(Action action) {
-        ArrayObjectAdapter adapter = mPrimaryActionsAdapter;
-        if (adapter.indexOf(action) >= 0) {
-            adapter.notifyArrayItemRangeChanged(adapter.indexOf(action), 1);
-            return;
-        }
-        adapter = mSecondaryActionsAdapter;
-        if (adapter.indexOf(action) >= 0) {
-            adapter.notifyArrayItemRangeChanged(adapter.indexOf(action), 1);
-            return;
+    @Override
+    public void onActionClicked(Action action) {
+        if(action.getId() == mPlayPauseAction.getId()) {
+            if(mPlayPauseAction.getIndex()
+                    == PlaybackControlsRow.PlayPauseAction.PLAY) {
+                setFadingEnabled(true);
+                mControlsCallback.play();
+            } else {
+                setFadingEnabled( false );
+                mControlsCallback.pause();
+            }
+            ((PlaybackControlsRow.MultiAction) action).nextIndex();
+            mPrimaryActionsAdapter.notifyArrayItemRangeChanged(
+                    mPrimaryActionsAdapter.indexOf(action), 1);
+        } else {
+            Toast.makeText( getActivity(), "Other action", Toast.LENGTH_SHORT ).show();
         }
     }
 

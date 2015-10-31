@@ -33,7 +33,11 @@ public class MainFragment extends BrowseFragment implements OnItemViewClickedLis
         super.onActivityCreated(savedInstanceState);
 
         loadData();
-        initUi();
+        setTitle( "Apress Media Player" );
+        setHeadersState( HEADERS_ENABLED );
+        setHeadersTransitionOnBackEnabled( true );
+
+//        initUi();
 
         loadRows();
 
@@ -49,10 +53,7 @@ public class MainFragment extends BrowseFragment implements OnItemViewClickedLis
     }
 
     private void initUi() {
-        setTitle( "Title" );
-        setHeadersState(HEADERS_ENABLED);
 
-        setHeadersTransitionOnBackEnabled(true);
 
         setSearchAffordanceColor(R.color.search_button_color);
 
@@ -89,7 +90,7 @@ public class MainFragment extends BrowseFragment implements OnItemViewClickedLis
             }
         }
 
-        setupPreferences(adapter);
+        //setupPreferences(adapter);
 
         setAdapter(adapter);
     }

@@ -9,11 +9,7 @@ import android.widget.VideoView;
  */
 public class PlayerActivity extends Activity implements PlayerControlsFragment.PlayerControlsListener {
     private VideoView mVideoView;
-    private Video mSelectedVideo;
-
-    private void initViews() {
-        mVideoView = (VideoView) findViewById( R.id.video_view );
-    }
+    private Video mVideo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -24,9 +20,13 @@ public class PlayerActivity extends Activity implements PlayerControlsFragment.P
         initVideoPlayer();
     }
 
+    private void initViews() {
+        mVideoView = (VideoView) findViewById( R.id.video_view );
+    }
+
     private void initVideoPlayer() {
-        mSelectedVideo = (Video) getIntent().getSerializableExtra( VideoDetailsFragment.EXTRA_VIDEO );
-        mVideoView.setVideoPath( mSelectedVideo.getVideoUrl() );
+        mVideo = (Video) getIntent().getSerializableExtra( VideoDetailsFragment.EXTRA_VIDEO );
+        mVideoView.setVideoPath( mVideo.getVideoUrl() );
     }
 
     @Override
