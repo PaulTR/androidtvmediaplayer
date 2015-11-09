@@ -26,10 +26,23 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".VideoDetailActivity" />
+        <activity android:name=".VideoDetailActivity">
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+
+        </activity>
         <activity android:name=".SettingsActivity" />
         <activity android:name=".MediaSearchActivity" />
         <activity android:name=".PlayerActivity" />
+
+        <provider android:name=".VideoContentProvider"
+            android:authorities="com.apress.mediaplayer"
+            android:exported="true" />
 
         <service android:name=".RecommendationsService"
             android:enabled="true" />

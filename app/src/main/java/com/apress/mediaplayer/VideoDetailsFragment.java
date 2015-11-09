@@ -1,8 +1,11 @@
 package com.apress.mediaplayer;
 
+import android.app.SearchManager;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v17.leanback.app.DetailsFragment;
 import android.support.v17.leanback.widget.Action;
@@ -31,6 +34,7 @@ import com.squareup.picasso.Target;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Paul on 9/16/15.
@@ -64,6 +68,19 @@ public class VideoDetailsFragment extends DetailsFragment implements OnItemViewC
         super.onCreate(savedInstanceState);
         mVideo = (Video) getActivity().getIntent().getSerializableExtra( EXTRA_VIDEO );
 
+        if( mVideo == null ) {
+
+            Intent intent = getActivity().getIntent();
+            Uri intentData = intent.getData();
+
+            String json = Utils.loadJSONFromResource(getActivity(), R.raw.videos);
+            Type collection = new TypeToken<ArrayList<Video>>(){}.getType();
+
+            Gson gson = new Gson();
+            List<Video> videos = gson.fromJson( json, collection );
+
+            mVideo = videos.get( Integer.parseInt( intentData.getLastPathSegment() ) - 1 );
+        }
         mRow = new DetailsOverviewRow( mVideo );
 
         initActions();
@@ -84,10 +101,10 @@ public class VideoDetailsFragment extends DetailsFragment implements OnItemViewC
         FullWidthDetailsOverviewRowPresenter presenter =
                 new FullWidthDetailsOverviewRowPresenter( new DetailsDescriptionPresenter() );
 
-        presenter.setOnActionClickedListener( this );
+        presenter.setOnActionClickedListener(this);
 
         presenterSelector.addClassPresenter(DetailsOverviewRow.class, presenter);
-        presenterSelector.addClassPresenter( ListRow.class, new ListRowPresenter() );
+        presenterSelector.addClassPresenter(ListRow.class, new ListRowPresenter());
 
         return presenterSelector;
     }
@@ -102,15 +119,13 @@ public class VideoDetailsFragment extends DetailsFragment implements OnItemViewC
 
             @Override
             public Object get(int position) {
-                if(position == 0) {
+                if (position == 0) {
                     return new Action(ACTION_WATCH, "Watch", "");
-                } else if( position == 1 ) {
-                    return new Action( 42, "Rent", "Line 2" );
-                } else if( position == 2 ) {
-                    return new Action( 42, "Preview", "" );
-                }
-
-                else return null;
+                } else if (position == 1) {
+                    return new Action(42, "Rent", "Line 2");
+                } else if (position == 2) {
+                    return new Action(42, "Preview", "");
+                } else return null;
             }
         });
     }

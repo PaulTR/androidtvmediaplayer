@@ -1,6 +1,7 @@
 package com.apress.mediaplayer;
 
 import android.app.Activity;
+import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.widget.VideoView;
 
@@ -32,6 +33,7 @@ public class PlayerActivity extends Activity implements PlayerControlsFragment.P
     @Override
     public void play() {
         mVideoView.start();
+
     }
 
     @Override
